@@ -5,6 +5,8 @@ format: pdf
 editor: visual
 ---
 
+GitHub Repository: <https://github.com/cmasshardt/gov51-ps4.git>
+
 ## 1. Setup and Exploration
 
 **1.1. Load packages and data**
