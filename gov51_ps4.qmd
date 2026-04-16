@@ -231,7 +231,7 @@ The coefficient on nearc4 for the reduced form regression is [0.040854]{.underli
 
 Wald estimator = (reduced form coeff on nearc4)/(first stage coeff on nearc4)
 
-= (0.040854)/(0.32711) = [0.1249]{.underline}
+= (0.040854)/(0.32711) = [0.124894]{.underline}
 
 \
 **3.3 Interpret the Wald estimator**
@@ -239,7 +239,7 @@ Wald estimator = (reduced form coeff on nearc4)/(first stage coeff on nearc4)
 *Interpret your Wald estimate in a sentence. What does it say about the effect of one additional
 year of education on wages?*
 
-The Wald estimate of 0.1249 indicates that living near a 4-year college at age 14 causes a 12.49% increase in weekly wages.
+The Wald estimate of 0.1249 indicates that each additional year of completed education causes a 12.49% increase in weekly wages.
 
 ------------------------------------------------------------------------
 
@@ -270,11 +270,13 @@ exper + expersq + married |
 nearc4 + black + smsa + south +
 exper + expersq + married,
 data = card, se_type = "HC2")
+
+iv
 ```
 
 *Report the coefficient on educ. Does it match your Wald estimate from Section 3.2?*
 
-Here
+The 2SLS regression yields a coefficient of [0.124893]{.underline} on educ. This is essentially the same as the Wald estimate from Section 3.2.
 
 \
 **4.3. Side-by-side comparison**
@@ -294,15 +296,15 @@ gof_map = c("nobs", "r.squared"))
 
 *(a) Which is larger — OLS or 2SLS?*
 
-Here
+The [2SLS]{.underline} estimate of the return to education is larger.
 
 *(b) Card (1995) interprets the finding that 2SLS \> OLS as evidence of downward bias in OLS. What could cause OLS to underestimate the return to education? (Hint: think about measurement error in educ, or about who the compliers are.)*
 
-Here
+OLS might underestimate the return to education because \_\_\_\_
 
 *(c) Which estimate is more credible as a causal estimate of the effect of education on wages? Explain briefly.*
 
-Here\
+The 2SLS estimate is more credible as a causal estimate because it uses the instrument of proximity to a 4-year college to isolate the effect of education level on wages. Whereas OLS has the problem of endogenous bias in the natural "assignment" of the treatment variable (in this case education level), 2SLS introduces an exogenous instrument (here it is nearc4) to control for any confounding from unobserved variables that might be correlated with the treatment. By controlling for these variables as well as observed ones, the instrument and corresponding 2SLS method enables us to make a causal estimate. \
 \
 **4.5. Adding IQ as a control**
 
@@ -311,25 +313,33 @@ Here\
 *(a) Run OLS of lwage on educ, IQ, and all other controls. How does including IQ change the OLS coefficient on educ?*
 
 ```{r}
+ols_IQ <- lm_robust(lwage ~ educ + IQ + black + smsa + south +
+exper + expersq + married,
+data = card, se_type = "HC2")
 
+ols_IQ
 ```
 
-Here\
+After adding IQ as a covariate, the coefficient on educ decreased from 0.0715 without IQ to [0.0676]{.underline} with IQ as a covariate. This is a decrease of 0.0039 on the coefficient for educ. \
 \
 
 *(b) Now run 2SLS including IQ. Does the 2SLS estimate change substantially when IQ is added?*
 
 ```{r}
+iv_IQ <- iv_robust(lwage ~ educ + IQ + black + smsa + south +
+exper + expersq + married |
+nearc4 + IQ + black + smsa + south +
+exper + expersq + married,
+data = card, se_type = "HC2")
 
+iv_IQ
 ```
 
-Here
-
-\
+Adding IQ to 2SLS, we get an educ coefficient of [0.1094]{.underline}, which is somewhat lower than the coefficient of 0.1249 from 2SLS without IQ as a covariate. This decrease of 0.0155 is larger than the decrease that occurred with the OLS coefficient when we added IQ. \
 
 *(c) What does the comparison between part (a) and part (b) suggest about the source of the discrepancy between OLS and IV?*
 
-Here
+\_\_\_
 
 ------------------------------------------------------------------------
 
@@ -341,7 +351,7 @@ Here
 
 *In this context, [who are the compliers]{.underline}? Describe them in concrete terms: what type of person’s educational attainment was increased because they happened to grow up near a 4-year college?*
 
-Here\
+The compliers are those who grew up near a four-year college and consequently attained a higher level of education (went to additional years of school). These are most likely people who attended at least some college (and thus gained more years of education) because they grew up near a college, as opposed to just graduating from high school and stopping at 12 years of education. \
 \
 **5.2. Write the LATE interpretation**
 
@@ -350,7 +360,7 @@ Here\
 (ii) For which specific group of people
 (iii) What source of variation identifies it*
 
-Here
+For men who grew up near a four-year college *and* attained a higher level of education as a result, an additional year of education causes a 10.94% increase in weekly wages.
 
 \
 **5.3 External validity**
@@ -359,6 +369,4 @@ Here
 
 *Think about whether the compliers — men who went to more school because they happened to live near a college — are likely to have higher or lower returns to education than the typical person. Explain your reasoning.*
 
-Here
-
-------------------------------------------------------------------------
+No — the local average treatment effect (LATE) of education level on weekly wages is likely to be higher than the general average treatment effect (ATE). This is because those who are compliers (attain a higher level of education because they live near a college) will likely tend to have other characteristics that improve future weekly wages, such as motivation to work hard or specific access to in-state or in-county tuition benefits due to arbitrary cutoffs. It is likely that those who comply with the instrument's (nearc4) assignment of the treatment variable (educ) do so because of systematic differences with non-compliers.
