@@ -176,9 +176,12 @@ card_nearc4 <- card[card$nearc4==1,]
 card_not_near <- card[card$nearc4==0,]
 
 #Creating vectors for a summary table
-var_names <- c("Percent Black", "Percent Lived in Metropolitan Area (SMSA)", "Percent Lived in the South")
-nearc4_yes <- c(mean(card_nearc4$black), mean(card_nearc4$smsa), mean(card_nearc4$south))
-nearc4_no <- c(mean(card_not_near$black), mean(card_not_near$smsa), mean(card_not_near$south))
+var_names <- c("Percent Black", "Percent Lived in Metropolitan Area (SMSA)",
+               "Percent Lived in the South")
+nearc4_yes <- c(mean(card_nearc4$black), mean(card_nearc4$smsa),
+                mean(card_nearc4$south))
+nearc4_no <- c(mean(card_not_near$black), mean(card_not_near$smsa),
+               mean(card_not_near$south))
 
 group_means <- data.frame(var_names, nearc4_yes, nearc4_no)
 
@@ -186,13 +189,14 @@ group_means <- data.frame(var_names, nearc4_yes, nearc4_no)
 library(knitr)
 group_means |>
 kable(
-col.names = c("Variable", "Lived Near a 4-Year College", "Did Not Live Near a 4-Year College"),
+col.names = c("Variable", "Lived Near a 4-Year College",
+              "Did Not Live Near a 4-Year College"),
 caption = "Comparing Group Characteristics"
 )
 
 ```
 
-While the groups are racially balanced for the most part, they are not balanced in terms of the proportion of each that lived in a metropolitan area and that lived in the South. Whereas 82.2% of those who lived near a 4-year college lived in a metropolitan area, only 47.9% of those who did not live near a 4-year college were in a metropolitan area. Moreover, whereas Whereas 32.9% of those who lived near a 4-year college lived in the South, 56.3% of those who did not live near a 4-year college were in a metropolitan area. These geographic differences in the two groups indicate that nearc4 as an instrument is \_\_\_\_\_\_\_\_\_\_\_\_.
+While the groups are racially balanced for the most part, they are not balanced in terms of the proportion of each that lived in a metropolitan area and that lived in the South. Whereas 82.2% of those who lived near a 4-year college lived in a metropolitan area, only 47.9% of those who did not live near a 4-year college were in a metropolitan area. Moreover, whereas Whereas 32.9% of those who lived near a 4-year college lived in the South, 56.3% of those who did not live near a 4-year college were in a metropolitan area. These geographic differences in the two groups indicate that nearc4 as an instrument is not independent from other covariates in the data.
 
 ------------------------------------------------------------------------
 
@@ -205,17 +209,29 @@ including the same controls as the first stage). Report the coefficient on nearc
 it: what does it tell us about how proximity to a college relates to wages?*
 
 ```{r}
+reduced_form <- lm_robust(lwage ~ nearc4 + black + smsa + south +
+exper + expersq + married,
+data = card, se_type = "HC2")
 
+rf_summary <- summary(reduced_form)
+rf_summary
 ```
 
-Here
+The coefficient on nearc4 for the reduced form regression is [0.040854]{.underline}. Those who lived near a 4-year college at age 14 on average have a 0.040854 higher log of weekly wages (earn 4.1% more in weekly wages). This tells us that closer proximity to a 4-year college is associated with higher wages.
 
 \
 **3.2. Calculate the Wald estimator by hand**
 
 *Using the first-stage coefficient from Section 2.2 and the reduced-form coefficient from Section 3.1, compute the Wald estimator by hand. Show your calculation.*
 
-Here
+```{r}
+#Calculating Wald estimator by hand
+0.040854/0.32711
+```
+
+Wald estimator = (reduced form coeff on nearc4)/(first stage coeff on nearc4)
+
+= (0.040854)/(0.32711) = [0.1249]{.underline}
 
 \
 **3.3 Interpret the Wald estimator**
@@ -223,7 +239,7 @@ Here
 *Interpret your Wald estimate in a sentence. What does it say about the effect of one additional
 year of education on wages?*
 
-Here
+The Wald estimate of 0.1249 indicates that living near a 4-year college at age 14 causes a 12.49% increase in weekly wages.
 
 ------------------------------------------------------------------------
 
@@ -237,9 +253,11 @@ Here
 ols <- lm_robust(lwage ~ educ + black + smsa + south +
 exper + expersq + married,
 data = card, se_type = "HC2")
+
+ols
 ```
 
-The coefficient on educ is \_\_.
+The coefficient on educ is [0.0715]{.underline}.
 
 \
 **4.2. 2SLS estimate**
