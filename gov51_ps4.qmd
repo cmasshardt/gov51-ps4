@@ -28,7 +28,11 @@ card <- read_csv("./data/card1995.csv")
 
 *How many observations are in the dataset? What is the unit of observation?*
 
-Here
+```{r}
+nrow(card)
+```
+
+There are [3,010 observations]{.underline} in the data set. The unit of observation is an individual participant in the survey — a young man of age 14-24 as of 1966.
 
 \
 **1.3. Distribution of years of education**
@@ -36,10 +40,23 @@ Here
 *Create a histogram of educ. What is the mean? Are there any unusual spikes? What might explain them?*
 
 ```{r}
+#Plotting histogram
+ggplot(card, aes(x = educ)) +
+  geom_histogram(binwidth = 1,
+                 fill = "steelblue",
+                 color = "white") +
+    labs(x = "Years of Completed Education",
+         y = "Number of Individuals",
+         title = "Distribution of Education Level")
+
+#Calculating mean
+mean(card$educ)
 
 ```
 
-Here
+The mean value for educ (years of completed education) is [13.26346]{.underline}.
+
+The two prominent spikes in the histogram are at 12 years and 16 years, which make sense given that high school (12 years) and bachelor's degree (12 + 4 = 16 years) are the most common education levels and serve as cutoffs for levels of education.
 
 \
 **1.4. The naïve relationship**
@@ -47,10 +64,16 @@ Here
 *Create a scatter plot of lwage (y-axis) against educ (x-axis). Add a linear regression line. Based on this plot, does more education appear to be associated with higher wages?*
 
 ```{r}
-
+ggplot(card,
+       aes(x = educ, y = lwage)) +
+  geom_point(color = "steelblue", size = 2) +
+  geom_smooth(method = "lm") +
+    labs(x = "Years of Completed Education",
+         y = "Log of Weekly Wage",
+         title = "Relationship between Education Level and Wages")
 ```
 
-Here
+Yes – based on this scatterplot and line of best fit, there is clearly a positive association between level of completed education and wages. As such, more education *appears* to be associated with higher wages.
 
 \
 \
@@ -58,7 +81,7 @@ Here
 
 *The OLS regression of lwage on educ might not give us the causal effect of education. Name two specific reasons why people with more education might earn more even if education itself had no effect.*
 
-Here
+[One potential reason]{.underline} is that socioeconomic class influences both education level and earnings — those in higher income brackets are more likely to go to college *and* are more likely to earn higher wages due to family connections, cultural similarity with those at elite, high-paying firms, and other class-related advantages. [Another reason]{.underline} could be the confounder of work ethic — those with the motivation to work hard succeed in education in part because of their work ethic. But these especially hard-working types would likely also earn more even without the effect of education because of the value they bring to employers through productivity.
 
 ------------------------------------------------------------------------
 
@@ -69,10 +92,12 @@ Here
 *The variable nearc4 equals 1 if the respondent grew up near a 4-year college. What share of respondents in this sample grew up near a 4-year college?*
 
 ```{r}
-
+#Since nearc4 is binary, we can use the mean to calculate the proportion
+# of respondents who 
+mean(card$nearc4)
 ```
 
-Here
+[68.21%]{.underline} of respondents in this sample grew up near a 4-year college.
 
 \
 **2.2. Relevance: does proximity affect education?**
@@ -82,13 +107,23 @@ Here
 *Run the following regression — the first stage — and report the coefficient on nearc4 along with its standard error and t-statistic:*
 
 ```{r}
+first_stage <- lm_robust(educ ~ nearc4 + black + smsa + south +
+exper + expersq + married,
+data = card, se_type = "HC2")
 
+fs_summary <- summary(first_stage)
+fs_summary
 ```
 
-\
+Coefficient on nearc4 = [0.32711]{.underline}
+
+Standard error of coefficient = [0.080554]{.underline}
+
+t-statistic = [4.0607]{.underline}\
+
 *Interpret the coefficient on nearc4 in a sentence. Does the sign make sense?*
 
-Here
+Those who live near a four-year college at age 14 have, on average, 0.32711 years more of completed education than those who did not live near a four-year college at age 14.
 
 \
 **2.3. Checking instrument strength**
@@ -96,11 +131,23 @@ Here
 *Report the t-statistic on nearc4 from the first-stage regression. Compute the first-stage F-statistic as 𝐹 =* $𝑡^2$*.*
 
 ```{r}
+#t-statistic on nearc4
+t_stats <- coef(fs_summary)[,"t value"]
+t_nearc4 <- t_stats["nearc4"]
+t_nearc4
 
+#Calculating F-statistic
+f_nearc4 <- (t_nearc4)^2
+f_nearc4
 ```
 
-Is your instrument strong? (Rule of thumb: F \> 10 suggests a strong instrument.) Why does
-instrument strength matter for the reliability of the 2SLS estimate?
+The t-statistic on nearc4 from the first-stage regression is [4.0607]{.underline}.
+
+The F-statistic computed as $F$ = $t^2$ equals [16.4897]{.underline}.\
+
+*Is your instrument strong? (Rule of thumb: F \> 10 suggests a strong instrument.) Why does instrument strength matter for the reliability of the 2SLS estimate?*
+
+Yes, our instrument of nearc4 is strong, since its $F$-statistic is 16.4897, which is greater than 10. Instrument strength matters for the reliability of the 2SLS estimate because a strong instrument functions to remove/minimize the bias in assignment of the treatment and ensures that there is not too much variation across samples. A weak instrument fails to remove bias compared to OLS and makes the denominator of the 2SLS estimate close to zero, which results in a high variance of estimates across samples.
 
 \
 **2.4. Exclusion restriction**
@@ -109,11 +156,11 @@ instrument strength matter for the reliability of the 2SLS estimate?
 
 *(a) State the exclusion restriction formally: what must be true about the relationship between nearc4 and lwage once we control for education?*
 
-Here\
+Any covariance of the outcome (lwage) and the instrumental variable (nearc4) must run only through the predictor variable (education). The variables nearc4 and lwage must have no covariance once we control for education. \
 
 *(b) Can you think of a way the exclusion restriction might be violated — that is, a reason why growing up near a college might affect your wages for reasons other than more education? Be specific.*
 
-Here\
+One reason why growing up near a college might affect your wages for reasons other than education is that the majority of colleges are in more urban/suburban areas, and wages tend to be higher in more populated areas. There could thus be confounding from the population density of an area that is associated with both proximity to a college and wages, beyond just education level. \
 \
 **2.5. Balance check**
 
@@ -121,7 +168,31 @@ Here\
 
 *Compute the mean black, smsa, and south for the two groups (nearc4 == 0 and nearc4 == 1). Are the groups balanced? What does any imbalance tell you about the instrument?*
 
-Here
+```{r}
+#Subset for those who lived near a college at age 14
+card_nearc4 <- card[card$nearc4==1,]
+
+#Subset for those who did not live near a college at age 14
+card_not_near <- card[card$nearc4==0,]
+
+#Creating vectors for a summary table
+var_names <- c("Percent Black", "Percent Lived in Metropolitan Area (SMSA)", "Percent Lived in the South")
+nearc4_yes <- c(mean(card_nearc4$black), mean(card_nearc4$smsa), mean(card_nearc4$south))
+nearc4_no <- c(mean(card_not_near$black), mean(card_not_near$smsa), mean(card_not_near$south))
+
+group_means <- data.frame(var_names, nearc4_yes, nearc4_no)
+
+#Table presentation
+library(knitr)
+group_means |>
+kable(
+col.names = c("Variable", "Lived Near a 4-Year College", "Did Not Live Near a 4-Year College"),
+caption = "Comparing Group Characteristics"
+)
+
+```
+
+While the groups are racially balanced for the most part, they are not balanced in terms of the proportion of each that lived in a metropolitan area and that lived in the South. Whereas 82.2% of those who lived near a 4-year college lived in a metropolitan area, only 47.9% of those who did not live near a 4-year college were in a metropolitan area. Moreover, whereas Whereas 32.9% of those who lived near a 4-year college lived in the South, 56.3% of those who did not live near a 4-year college were in a metropolitan area. These geographic differences in the two groups indicate that nearc4 as an instrument is \_\_\_\_\_\_\_\_\_\_\_\_.
 
 ------------------------------------------------------------------------
 
