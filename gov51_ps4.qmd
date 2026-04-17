@@ -45,7 +45,8 @@ ggplot(card, aes(x = educ)) +
   geom_histogram(binwidth = 1,
                  fill = "steelblue",
                  color = "white") +
-    labs(x = "Years of Completed Education",
+  geom_vline(xintercept = mean(card$educ), color = "red") +
+  labs(x = "Years of Completed Education",
          y = "Number of Individuals",
          title = "Distribution of Education Level")
 
@@ -81,7 +82,7 @@ Yes – based on this scatterplot and line of best fit, there is clearly a posit
 
 *The OLS regression of lwage on educ might not give us the causal effect of education. Name two specific reasons why people with more education might earn more even if education itself had no effect.*
 
-[One potential reason]{.underline} is that socioeconomic class influences both education level and earnings — those in higher income brackets are more likely to go to college *and* are more likely to earn higher wages due to family connections, cultural similarity with those at elite, high-paying firms, and other class-related advantages. [Another reason]{.underline} could be the confounder of work ethic — those with the motivation to work hard succeed in education in part because of their work ethic. But these especially hard-working types would likely also earn more even without the effect of education because of the value they bring to employers through productivity.
+[One potential reason]{.underline} is that socioeconomic class (family background) influences both education level and earnings — those in higher income brackets are more likely to go to college *and* are more likely to earn higher wages due to family connections, cultural similarity with those at elite, high-paying firms, and other class-related advantages. [Another reason]{.underline} could be the confounder of talent and work ethic (ability bias) — those with the skills and motivation to work hard succeed in education, but these especially hard-working types would likely also earn more even without the effect of education because of the value they bring to employers through productivity.
 
 ------------------------------------------------------------------------
 
@@ -123,7 +124,7 @@ t-statistic = [4.0607]{.underline}\
 
 *Interpret the coefficient on nearc4 in a sentence. Does the sign make sense?*
 
-Those who live near a four-year college at age 14 have, on average, 0.32711 years more of completed education than those who did not live near a four-year college at age 14.
+Those who live near a four-year college at age 14 have, on average, complete 0.32711 years more of education than those who did not live near a four-year college at age 14.
 
 \
 **2.3. Checking instrument strength**
@@ -156,11 +157,11 @@ Yes, our instrument of nearc4 is strong, since its $F$-statistic is 16.4897, whi
 
 *(a) State the exclusion restriction formally: what must be true about the relationship between nearc4 and lwage once we control for education?*
 
-Any covariance of the outcome (lwage) and the instrumental variable (nearc4) must run only through the predictor variable (education). The variables nearc4 and lwage must have no covariance once we control for education. \
+The covariance between the instrument Z and the error term is zero. The relationship between the instrumental variable (nearc4) and the outcome (lwage) must run only through the predictor variable (education). The variables nearc4 and lwage must have no covariance once we control for education. \
 
 *(b) Can you think of a way the exclusion restriction might be violated — that is, a reason why growing up near a college might affect your wages for reasons other than more education? Be specific.*
 
-One reason why growing up near a college might affect your wages for reasons other than education is that the majority of colleges are in more urban/suburban areas, and wages tend to be higher in more populated areas. There could thus be confounding from the population density of an area that is associated with both proximity to a college and wages, beyond just education level. \
+One reason why growing up near a college might affect your wages for reasons other than education is the role of peer network groups. living near a college can expose people to a higher-status or higher-achieving peer group, which can lead to higher wages outside of the influence on education. In this way, growing up near a college can affect wages for reasons other than education, as the networking benefits of a peer group might operate to increase wages regardless of education level. \
 \
 **2.5. Balance check**
 
@@ -196,7 +197,7 @@ caption = "Comparing Group Characteristics"
 
 ```
 
-While the groups are racially balanced for the most part, they are not balanced in terms of the proportion of each that lived in a metropolitan area and that lived in the South. Whereas 82.2% of those who lived near a 4-year college lived in a metropolitan area, only 47.9% of those who did not live near a 4-year college were in a metropolitan area. Moreover, whereas Whereas 32.9% of those who lived near a 4-year college lived in the South, 56.3% of those who did not live near a 4-year college were in a metropolitan area. These geographic differences in the two groups indicate that nearc4 as an instrument is not independent from other covariates in the data.
+While the groups are racially balanced for the most part, they are not balanced in terms of the proportion of each that lived in a metropolitan area and that lived in the South. Race is somewhat closer, but still unbalanced. Whereas 82.2% of those who lived near a 4-year college lived in a metropolitan area, only 47.9% of those who did not live near a 4-year college were in a metropolitan area. Moreover, whereas Whereas 32.9% of those who lived near a 4-year college lived in the South, 56.3% of those who did not live near a 4-year college were in a metropolitan area. These geographic differences in the two groups indicate that nearc4 as an instrument is not perfectly balanced. Since the instrument is not independent from other covariates in the data, we need to control for these covariates in our regression.
 
 ------------------------------------------------------------------------
 
@@ -296,11 +297,13 @@ gof_map = c("nobs", "r.squared"))
 
 *(a) Which is larger — OLS or 2SLS?*
 
-The [2SLS]{.underline} estimate of the return to education is larger.
+The [2SLS]{.underline} estimate of the return to education is larger. \
 
 *(b) Card (1995) interprets the finding that 2SLS \> OLS as evidence of downward bias in OLS. What could cause OLS to underestimate the return to education? (Hint: think about measurement error in educ, or about who the compliers are.)*
 
-OLS might underestimate the return to education because \_\_\_\_
+OLS might underestimate the return to education because OLS takes into account the relationship between education level and weekly wages for all sampled individuals, whereas 2SLS captures the relationship between education level and weekly wages for those who actually attend more years of schooling because of their proximity to a 4-year college (those who are "compliers"). Compliers in this context are largely those who are less socioeconomically advantaged, so they benefit more from a marginal increase in education. These individuals "comply" with the treatment of education by taking advantage of a nearby 4-year college, so the LATE value from 2SLS is higher than that of ATE from OLS, which captures the relationship between education and wages for the general population.
+
+Another potential cause of OLS underestimating the return to education is the issue of attenuation bias, which is caused by errors in the measurement of the independent variable (educ). With random noise and variability in the independent variable (error in educ), the coefficient from OLS is biased toward zero as the regression is fit to a noisier set of data points.
 
 *(c) Which estimate is more credible as a causal estimate of the effect of education on wages? Explain briefly.*
 
@@ -320,8 +323,7 @@ data = card, se_type = "HC2")
 ols_IQ
 ```
 
-After adding IQ as a covariate, the coefficient on educ decreased from 0.0715 without IQ to [0.0676]{.underline} with IQ as a covariate. This is a decrease of 0.0039 on the coefficient for educ. \
-\
+After adding IQ as a covariate, the coefficient on educ decreased from 0.0715 without IQ to [0.0676]{.underline} with IQ as a covariate. This is a decrease of 0.0039 on the coefficient for educ. IQ absorbed some of the ability bias (bias from the higher [ability]{.underline} of participants with higher education), so the coefficient on educ was brought down. \
 
 *(b) Now run 2SLS including IQ. Does the 2SLS estimate change substantially when IQ is added?*
 
@@ -335,11 +337,11 @@ data = card, se_type = "HC2")
 iv_IQ
 ```
 
-Adding IQ to 2SLS, we get an educ coefficient of [0.1094]{.underline}, which is somewhat lower than the coefficient of 0.1249 from 2SLS without IQ as a covariate. This decrease of 0.0155 is larger than the decrease that occurred with the OLS coefficient when we added IQ. \
+Adding IQ to 2SLS, we get an educ coefficient of [0.1094]{.underline}, which is somewhat lower than the coefficient of 0.1249 from 2SLS without IQ as a covariate, but does not change substantially. This decrease of 0.0155 is larger than the decrease that occurred with the OLS coefficient when we added IQ. Adding IQ lowers the coefficient on educ in both cases. \
 
 *(c) What does the comparison between part (a) and part (b) suggest about the source of the discrepancy between OLS and IV?*
 
-\_\_\_
+By adding IQ as a covariate, the discrepancy between OLS and 2SLS has decreased, but still remains. When we add IQ as a variable, 2SLS does not change substantially, meaning that it is not as influenced by ability bias. 2SLS identifies a genuine causal effect, not a relationship influenced by ability bias. In this way, 2SLS is better than OLS because it is a stronger causal mechanism. Whereas OLS is driven by ability bias, 2SLS is not driven by ability bias, so it is a better causal estimate.
 
 ------------------------------------------------------------------------
 
@@ -351,7 +353,7 @@ Adding IQ to 2SLS, we get an educ coefficient of [0.1094]{.underline}, which is 
 
 *In this context, [who are the compliers]{.underline}? Describe them in concrete terms: what type of person’s educational attainment was increased because they happened to grow up near a 4-year college?*
 
-The compliers are those who grew up near a four-year college and consequently attained a higher level of education (went to additional years of school). These are most likely people who attended at least some college (and thus gained more years of education) because they grew up near a college, as opposed to just graduating from high school and stopping at 12 years of education. \
+The compliers are those who attained a higher level of education (went to additional years of school) because they grew up near a four-year college. These are most likely people who attended at least some college (and thus gained more years of education) because they grew up near a college, as opposed to just graduating from high school and stopping at 12 years of education. More specifically, these compliers are people who would not have attended college if they had not lived near a 4-year college. They might be students from disadvantaged backgrounds who gain scholarship and in-state/county tuition from living nearby, or who learn about the benefits of college through recruiting and other exposure to higher education. The compliers are [not]{.underline} people who would have attended college either way (always-takers), and they are [not]{.underline} those who complete no further education even though they live near a college (never-takers). \
 \
 **5.2. Write the LATE interpretation**
 
@@ -360,7 +362,7 @@ The compliers are those who grew up near a four-year college and consequently at
 (ii) For which specific group of people
 (iii) What source of variation identifies it*
 
-For men who grew up near a four-year college *and* attained a higher level of education as a result, an additional year of education causes a 10.94% increase in weekly wages.
+For men who attained a higher level of education (treatment) because they grew up near a four-year college (IV that randomizes the treatment), an additional year of education causes a 12.5% increase in weekly wages (outcome).
 
 \
 **5.3 External validity**
@@ -369,4 +371,4 @@ For men who grew up near a four-year college *and* attained a higher level of ed
 
 *Think about whether the compliers — men who went to more school because they happened to live near a college — are likely to have higher or lower returns to education than the typical person. Explain your reasoning.*
 
-No — the local average treatment effect (LATE) of education level on weekly wages is likely to be higher than the general average treatment effect (ATE). This is because those who are compliers (attain a higher level of education because they live near a college) will likely tend to have other characteristics that improve future weekly wages, such as motivation to work hard or specific access to in-state or in-county tuition benefits due to arbitrary cutoffs. It is likely that those who comply with the instrument's (nearc4) assignment of the treatment variable (educ) do so because of systematic differences with non-compliers.
+No — the local average treatment effect (LATE) of education level on weekly wages is likely to be higher than the general average treatment effect (ATE). This is because those who are compliers (attain a higher level of education because they live near a college) will likely be those from more disadvantaged backgrounds, for whom returns to additional education are higher. Because these men normally would not have gone to college, the return on education in terms of weekly wages is higher for these individuals. As such, the LATE is higher than ATE given the characteristics of the compliers.
